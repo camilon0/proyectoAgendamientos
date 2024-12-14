@@ -8,110 +8,133 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  createActivity,
+  deleteActivity,
+  fetchActivities,
+  updateActivity,
+} from "./services/api";
 
-interface Appointment {
+// Definir tipos para las actividades
+interface Activity {
   id: number;
-  date: string;
-  time: string;
+  name: string;
+  reservationDate: string;
+  description: string;
+  type: string;
+  capacity: number;
 }
 
-const appointments: Appointment[] = [
-  { id: 1, date: "2024-03-15", time: "10:00 AM" },
-  { id: 2, date: "2024-03-15", time: "11:00 AM" },
-  { id: 3, date: "2024-03-15", time: "2:00 PM" },
-  { id: 4, date: "2024-03-16", time: "9:00 AM" },
-  { id: 5, date: "2024-03-16", time: "10:00 AM" },
-  { id: 6, date: "2024-03-16", time: "3:00 PM" },
-  { id: 7, date: "2024-03-17", time: "10:00 AM" },
-  { id: 8, date: "2024-03-17", time: "1:00 PM" },
-  { id: 9, date: "2024-03-18", time: "9:00 AM" },
-  { id: 10, date: "2024-03-18", time: "2:00 PM" },
-  { id: 11, date: "2024-03-20", time: "10:00 AM" },
-  { id: 12, date: "2024-03-20", time: "11:00 AM" },
-  { id: 13, date: "2024-03-22", time: "9:00 AM" },
-  { id: 14, date: "2024-03-22", time: "3:00 PM" },
-  { id: 15, date: "2024-03-25", time: "10:00 AM" },
-];
-
-const activities = [
-  "Reservar vuelo",
-  "Reservar hotel",
-  "Tour guiado",
-  "Rentar auto",
-  "Planificar itinerario",
-];
 const AppointmentApp = () => {
-  const [selectedAppointment, setSelectedAppointment] =
-    useState<Appointment | null>(null);
-  const [name, setName] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [details, setDetails] = useState("");
-  const [activity, setActivity] = useState("");
+  const [activities, setActivities] = useState<Activity[]>([]); // Lista de actividades
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
+    null
+  ); // Actividad seleccionada
+  const [name, setName] = useState<string>("");
+  const [date, setDate] = useState<string>("");
+  const [reservationDate, setreservationDate] = useState<string>("");
+  const [details, setDetails] = useState<string>("");
+  const [activityType, setActivityType] = useState<string>("");
 
-  const handleSelectAppointment = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setDate(appointment.date);
-    setTime(convertTimeTo24Hour(appointment.time)); // Convertimos la hora al formato compatible con `<input type="time">`
-  };
+  // Cargar actividades al inicio
+  useEffect(() => {
+    const loadActivities = async () => {
+      try {
+        const data = await fetchActivities();
+        setActivities(data);
+      } catch (error: any) {
+        console.error("Error loading activities:", error.message);
+        alert(
+          "No se pudieron cargar las actividades. Por favor, intente más tarde."
+        );
+      }
+    };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    loadActivities();
+  }, []);
+
+  // Manejar el envío del formulario para crear o actualizar una actividad
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Validar que la fecha y la hora coincidan con una cita disponible
-    const isValidAppointment = appointments.some(
-      (appointment) =>
-        appointment.date === date &&
-        appointment.time === convertTimeTo12Hour(time)
-    );
+    try {
+      const newActivity = {
+        name,
+        date,
+        reservationDate,
+        details,
+        type: activityType,
+      };
 
-    if (!isValidAppointment) {
-      alert("La fecha y hora seleccionadas no están disponibles.");
-      return;
+      if (selectedActivity) {
+        // Actualizar actividad existente
+        await updateActivity(selectedActivity.id, newActivity);
+        alert("Actividad actualizada con éxito");
+      } else {
+        // Crear nueva actividad
+        await createActivity(newActivity);
+        alert("Actividad creada con éxito");
+      }
+
+      const updatedActivities = await fetchActivities();
+      setActivities(updatedActivities);
+      resetForm();
+    } catch (error) {
+      console.error("Error submitting activity:", error);
+      alert("Error al enviar la actividad");
     }
-
-    console.log("Appointment booked:", { name, date, time, details });
-    alert("¡Cita agendada exitosamente!");
   };
 
-  const convertTimeTo24Hour = (time12Hour: string): string => {
-    const [time, period] = time12Hour.split(" ");
-    let [hours, minutes] = time.split(":").map(Number);
-
-    if (period === "PM" && hours < 12) {
-      hours += 12;
-    } else if (period === "AM" && hours === 12) {
-      hours = 0;
-    }
-
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
-      2,
-      "0"
-    )}`;
+  // Resetear el formulario
+  const resetForm = () => {
+    setName("");
+    setDate("");
+    setreservationDate("");
+    setDetails("");
+    setActivityType("");
+    setSelectedActivity(null);
   };
 
-  const convertTimeTo12Hour = (time24Hour: string): string => {
-    const [hours, minutes] = time24Hour.split(":").map(Number);
-    const period = hours >= 12 ? "PM" : "AM";
-    const normalizedHours = hours % 12 || 12;
-    return `${normalizedHours}:${String(minutes).padStart(2, "0")} ${period}`;
+  // Manejar la selección de una actividad
+  const handleSelectActivity = (activity: Activity) => {
+    setSelectedActivity(activity);
+    setName(activity.name);
+    setDate(activity.reservationDate);
+    setreservationDate(activity.reservationDate);
+    setDetails(activity.description);
+    setActivityType(activity.type);
+  };
+
+  // Manejar la eliminación de una actividad
+  const handleDelete = async (id: number) => {
+    if (confirm("¿Estás seguro de que deseas eliminar esta actividad?")) {
+      try {
+        await deleteActivity(id);
+        alert("Actividad eliminada con éxito");
+        const updatedActivities = await fetchActivities();
+        setActivities(updatedActivities);
+      } catch (error) {
+        console.error("Error deleting activity:", error);
+        alert("Error eliminando la actividad");
+      }
+    }
   };
 
   return (
     <Grid container spacing={4} padding={4}>
-      {/* Booking Form */}
+      {/* Formulario para crear o editar actividad */}
       <Grid item xs={12} md={6}>
         <Card>
           <CardContent>
             <Typography variant="h5" gutterBottom>
-              Book an Appointment
+              {selectedActivity ? "Editar Actividad" : "Crear Actividad"}
             </Typography>
             <form onSubmit={handleSubmit}>
               <Box marginBottom={2}>
                 <TextField
                   fullWidth
-                  label="Name"
+                  label="Nombre"
                   variant="outlined"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -120,7 +143,7 @@ const AppointmentApp = () => {
               <Box marginBottom={2}>
                 <TextField
                   fullWidth
-                  label="Date"
+                  label="Fecha"
                   type="date"
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
@@ -131,26 +154,26 @@ const AppointmentApp = () => {
               <Box marginBottom={2}>
                 <TextField
                   fullWidth
-                  label="Time"
-                  type="time"
+                  label="Hora"
+                  type="reservationDate"
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
+                  value={reservationDate}
+                  onChange={(e) => setreservationDate(e.target.value)}
                 />
               </Box>
               <Box marginBottom={2}>
                 <TextField
                   fullWidth
-                  label="Activity"
+                  label="Tipo de Actividad"
                   select
                   variant="outlined"
-                  value={activity}
-                  onChange={(e) => setActivity(e.target.value)}
+                  value={activityType}
+                  onChange={(e) => setActivityType(e.target.value)}
                 >
                   {activities.map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
+                    <MenuItem key={option.id} value={option.type}>
+                      {option.type}
                     </MenuItem>
                   ))}
                 </TextField>
@@ -158,7 +181,7 @@ const AppointmentApp = () => {
               <Box marginBottom={2}>
                 <TextField
                   fullWidth
-                  label="Details"
+                  label="Detalles"
                   multiline
                   rows={4}
                   variant="outlined"
@@ -167,44 +190,65 @@ const AppointmentApp = () => {
                 />
               </Box>
               <Button variant="contained" color="primary" type="submit">
-                Book Appointment
+                {selectedActivity ? "Actualizar Actividad" : "Crear Actividad"}
               </Button>
+              {selectedActivity && (
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={resetForm}
+                  sx={{ marginLeft: 2 }}
+                >
+                  Cancelar
+                </Button>
+              )}
             </form>
           </CardContent>
         </Card>
       </Grid>
 
-      {/* Appointment List */}
+      {/* Lista de actividades */}
       <Grid item xs={12} md={6}>
         <Card>
           <CardContent>
             <Typography variant="h5" gutterBottom>
-              Available Appointments
+              Actividades Disponibles
             </Typography>
             <Grid container spacing={2}>
-              {appointments.map((appointment) => (
-                <Grid item xs={12} sm={6} key={appointment.id}>
+              {activities.map((activity) => (
+                <Grid item xs={12} sm={6} key={activity.id}>
                   <Card
-                    onClick={() => handleSelectAppointment(appointment)}
+                    onClick={() => handleSelectActivity(activity)}
                     sx={{
                       cursor: "pointer",
                       border:
-                        selectedAppointment?.id === appointment.id
+                        selectedActivity?.id === activity.id
                           ? "2px solid #1976d2"
                           : "1px solid #e0e0e0",
                       backgroundColor:
-                        selectedAppointment?.id === appointment.id
+                        selectedActivity?.id === activity.id
                           ? "#e3f2fd"
                           : "white",
                     }}
                   >
                     <CardContent>
                       <Typography variant="body1" fontWeight="bold">
-                        {appointment.date}
+                        {activity.name}
                       </Typography>
                       <Typography variant="body2">
-                        {appointment.time}
+                        {activity.reservationDate}
                       </Typography>
+
+                      <Box marginTop={2}>
+                        <Button
+                          onClick={() => handleDelete(activity.id)}
+                          color="error"
+                          variant="contained"
+                          size="small"
+                        >
+                          Eliminar
+                        </Button>
+                      </Box>
                     </CardContent>
                   </Card>
                 </Grid>

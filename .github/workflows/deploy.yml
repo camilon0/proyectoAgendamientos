@@ -1,0 +1,50 @@
+name: Deploy Next.js to AWS S3 with CloudFront
+
+on:
+  workflow_dispatch
+  #push:
+    #branches:
+      #- main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Clonar el repositorio
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Configurar Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # 3. Instalar dependencias y crear el build
+      - name: Install dependencies and build
+        run: |
+          npm install
+          npm run build
+          
+
+      # 4. Subir los archivos al bucket S3
+      - name: Upload to S3
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        with:
+          args: --acl public-read --delete
+        env:
+          AWS_S3_BUCKET: prod-nextjs-appeasyreserves-590183865524-us-east-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+          SOURCE_DIR: out # Directorio generado por `next export`
+
+      # 5. Invalidar la caché de CloudFront
+      - name: Invalidate CloudFront
+        uses: chetan/invalidate-cloudfront-action@v2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          DISTRIBUTION_ID: E3Q4P5HVJJLTTI
+          PATHS: "/*"

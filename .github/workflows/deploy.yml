@@ -39,12 +39,14 @@ jobs:
           SOURCE_DIR: out # Directorio generado por `next export`
 
       # 5. Invalidar la caché de CloudFront
+      # 5. Invalidar la caché de CloudFront
       - name: Invalidate CloudFront
         uses: chetan/invalidate-cloudfront-action@v2
         with:
-          distribution: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+          paths: "/*" # Define el patrón de archivos que deseas invalidar
         env:
           AWS_REGION: 'us-east-1'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}          
-          PATHS: "/*"
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+

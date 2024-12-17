@@ -1,10 +1,10 @@
 name: Deploy Next.js to AWS S3 with CloudFront
 
 on:
-  workflow_dispatch
-  #push:
-    #branches:
-      #- main
+  
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
@@ -39,16 +39,15 @@ jobs:
           SOURCE_DIR: out # Directorio generado por `next export`
 
       # 5. Invalidar la caché de CloudFront
-      # 5. Invalidar la caché de CloudFront
+
       - name: Invalidate CloudFront
         uses: chetan/invalidate-cloudfront-action@v2
-        with:
-          distribution: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
-           # Define el patrón de archivos que deseas invalidar
         env:
           AWS_REGION: 'us-east-1'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          DISTRIBUTION: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
           PATHS: "/*"
+
           
 

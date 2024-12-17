@@ -41,8 +41,10 @@ jobs:
       # 5. Invalidar la caché de CloudFront
       - name: Invalidate CloudFront
         uses: chetan/invalidate-cloudfront-action@v2
+        with:
+          distribution: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
         env:
+          AWS_REGION: 'us-east-1'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          DISTRIBUTION_ID: E3Q4P5HVJJLTTI
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}          
           PATHS: "/*"

@@ -18,12 +18,11 @@ import {
 
 // Definir tipos para las actividades
 interface Activity {
-  activityId: string;
+  activityId: number; // Cambiado a número
   name: string;
-  reservationDate: string;
-  description: string;
-  type: string;
-  availableCapacity: number;
+  reservationDate: string; // Renombrado
+  description: string; // Renombrado
+  capacity: number; // Renombrado y definido como número
 }
 
 const AppointmentApp = () => {
@@ -32,10 +31,12 @@ const AppointmentApp = () => {
     null
   ); // Actividad seleccionada
   const [name, setName] = useState<string>("");
-  const [date, setDate] = useState<string>("");
-  const [reservationDate, setreservationDate] = useState<string>("");
-  const [details, setDetails] = useState<string>("");
-  const [activityType, setActivityType] = useState<string>("");
+  const [reservationDate, setReservationDate] = useState<string>(""); // Renombrado
+  const [description, setDescription] = useState<string>(""); // Renombrado
+  const [capacity, setCapacity] = useState<number | "">(""); // Campo numérico
+
+  // Generar activityId aleatorio
+  const generateActivityId = () => Math.floor(100 + Math.random() * 900);
 
   // Cargar actividades al inicio
   useEffect(() => {
@@ -60,11 +61,13 @@ const AppointmentApp = () => {
 
     try {
       const newActivity = {
+        activityId: selectedActivity
+          ? selectedActivity.activityId
+          : generateActivityId(),
         name,
-        date,
         reservationDate,
-        details,
-        type: activityType,
+        description,
+        capacity: Number(capacity), // Convertir capacidad a número
       };
 
       if (selectedActivity) {
@@ -89,10 +92,9 @@ const AppointmentApp = () => {
   // Resetear el formulario
   const resetForm = () => {
     setName("");
-    setDate("");
-    setreservationDate("");
-    setDetails("");
-    setActivityType("");
+    setReservationDate("");
+    setDescription("");
+    setCapacity("");
     setSelectedActivity(null);
   };
 
@@ -100,14 +102,13 @@ const AppointmentApp = () => {
   const handleSelectActivity = (activity: Activity) => {
     setSelectedActivity(activity);
     setName(activity.name);
-    setDate(activity.reservationDate);
-    setreservationDate(activity.reservationDate);
-    setDetails(activity.description);
-    setActivityType(activity.type);
+    setReservationDate(activity.reservationDate);
+    setDescription(activity.description);
+    setCapacity(activity.capacity);
   };
 
   // Manejar la eliminación de una actividad
-  const handleDelete = async (activityId: string) => {
+  const handleDelete = async (activityId: number) => {
     if (confirm("¿Estás seguro de que deseas eliminar esta actividad?")) {
       try {
         await deleteActivity(activityId);
@@ -143,50 +144,37 @@ const AppointmentApp = () => {
               <Box marginBottom={2}>
                 <TextField
                   fullWidth
-                  label="Fecha"
+                  label="Fecha de Reservación"
                   type="date"
                   variant="outlined"
                   InputLabelProps={{ shrink: true }}
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-              </Box>
-              <Box marginBottom={2}>
-                <TextField
-                  fullWidth
-                  label="Hora"
-                  type="reservationDate"
-                  variant="outlined"
-                  InputLabelProps={{ shrink: true }}
                   value={reservationDate}
-                  onChange={(e) => setreservationDate(e.target.value)}
+                  onChange={(e) => setReservationDate(e.target.value)}
                 />
               </Box>
               <Box marginBottom={2}>
                 <TextField
                   fullWidth
-                  label="Tipo de Actividad"
-                  select
-                  variant="outlined"
-                  value={activityType}
-                  onChange={(e) => setActivityType(e.target.value)}
-                >
-                  {activities.map((option) => (
-                    <MenuItem key={option.activityId} value={option.type}>
-                      {option.type}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Box>
-              <Box marginBottom={2}>
-                <TextField
-                  fullWidth
-                  label="Detalles"
+                  label="Descripción"
                   multiline
                   rows={4}
                   variant="outlined"
-                  value={details}
-                  onChange={(e) => setDetails(e.target.value)}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </Box>
+              <Box marginBottom={2}>
+                <TextField
+                  fullWidth
+                  label="Capacidad"
+                  type="number"
+                  variant="outlined"
+                  value={capacity}
+                  onChange={(e) =>
+                    setCapacity(
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
                 />
               </Box>
               <Button variant="contained" color="primary" type="submit">

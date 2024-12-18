@@ -8,16 +8,18 @@ Parameters:
     Default: "prod"
 
 Resources:
+  # 1. S3 Bucket
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "${Environment}-nextjs-appeasyreserves-${AWS::AccountId}-${AWS::Region}"
-      PublicAccessBlockConfiguration:
+      PublicAccessBlockConfiguration: # Permitir políticas públicas controladas
         BlockPublicAcls: true
-        BlockPublicPolicy: true
+        BlockPublicPolicy: false
         IgnorePublicAcls: true
-        RestrictPublicBuckets: true
+        RestrictPublicBuckets: false
 
+  # 2. Política del Bucket para permitir acceso desde CloudFront
   S3BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -35,6 +37,7 @@ Resources:
               StringEquals:
                 AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
 
+  # 3. Origin Access Control (OAC) para CloudFront
   CloudFrontOriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
@@ -45,6 +48,7 @@ Resources:
         SigningBehavior: always
         OriginAccessControlOriginType: s3
 
+  # 4. CloudFront Distribution
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -55,8 +59,7 @@ Resources:
           - Id: S3Origin
             DomainName: !GetAtt S3Bucket.RegionalDomainName
             OriginAccessControlId: !Ref CloudFrontOriginAccessControl
-            S3OriginConfig:
-              OriginAccessIdentity: ""
+            S3OriginConfig: {} # Omitir OriginAccessIdentity al usar OAC
         DefaultCacheBehavior:
           TargetOriginId: S3Origin
           ViewerProtocolPolicy: redirect-to-https

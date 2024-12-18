@@ -6,6 +6,6 @@ export const API_ROUTES = {
   listActivities: "/activities",
   createActivity: "/activities",
   reservations: "/reservations",
-  editActivity: (id) => `/activities/${id}`,
-  deleteActivity: (id) => `/activities/${id}`,
+  editActivity: (activityId) => `/activities/${activityId}`,
+  deleteActivity: (activityId) => `/activities/${activityId}`,
 };

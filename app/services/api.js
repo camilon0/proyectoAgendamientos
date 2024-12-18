@@ -34,15 +34,15 @@ export const createActivity = async (activity) => {
 };
 
 // Editar una actividad existente
-export const updateActivity = async (id, updatedActivity) => {
+export const updateActivity = async (activityId, updatedActivity) => {
   const response = await axiosInstance.put(
-    API_ROUTES.editActivity(id),
+    API_ROUTES.editActivity(activityId),
     updatedActivity
   );
   return response.data;
 };
 
 // Eliminar una actividad
-export const deleteActivity = async (id) => {
-  await axiosInstance.delete(API_ROUTES.deleteActivity(id));
+export const deleteActivity = async (activityId) => {
+  await axiosInstance.delete(API_ROUTES.deleteActivity(activityId));
 };

@@ -18,12 +18,12 @@ import {
 
 // Definir tipos para las actividades
 interface Activity {
-  id: number;
+  activityId: string;
   name: string;
   reservationDate: string;
   description: string;
   type: string;
-  capacity: number;
+  availableCapacity: number;
 }
 
 const AppointmentApp = () => {
@@ -69,7 +69,7 @@ const AppointmentApp = () => {
 
       if (selectedActivity) {
         // Actualizar actividad existente
-        await updateActivity(selectedActivity.id, newActivity);
+        await updateActivity(selectedActivity.activityId, newActivity);
         alert("Actividad actualizada con éxito");
       } else {
         // Crear nueva actividad
@@ -107,10 +107,10 @@ const AppointmentApp = () => {
   };
 
   // Manejar la eliminación de una actividad
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (activityId: string) => {
     if (confirm("¿Estás seguro de que deseas eliminar esta actividad?")) {
       try {
-        await deleteActivity(id);
+        await deleteActivity(activityId);
         alert("Actividad eliminada con éxito");
         const updatedActivities = await fetchActivities();
         setActivities(updatedActivities);
@@ -172,7 +172,7 @@ const AppointmentApp = () => {
                   onChange={(e) => setActivityType(e.target.value)}
                 >
                   {activities.map((option) => (
-                    <MenuItem key={option.id} value={option.type}>
+                    <MenuItem key={option.activityId} value={option.type}>
                       {option.type}
                     </MenuItem>
                   ))}
@@ -216,17 +216,17 @@ const AppointmentApp = () => {
             </Typography>
             <Grid container spacing={2}>
               {activities.map((activity) => (
-                <Grid item xs={12} sm={6} key={activity.id}>
+                <Grid item xs={12} sm={6} key={activity.activityId}>
                   <Card
                     onClick={() => handleSelectActivity(activity)}
                     sx={{
                       cursor: "pointer",
                       border:
-                        selectedActivity?.id === activity.id
+                        selectedActivity?.activityId === activity.activityId
                           ? "2px solid #1976d2"
                           : "1px solid #e0e0e0",
                       backgroundColor:
-                        selectedActivity?.id === activity.id
+                        selectedActivity?.activityId === activity.activityId
                           ? "#e3f2fd"
                           : "white",
                     }}
@@ -241,7 +241,7 @@ const AppointmentApp = () => {
 
                       <Box marginTop={2}>
                         <Button
-                          onClick={() => handleDelete(activity.id)}
+                          onClick={() => handleDelete(activity.activityId)}
                           color="error"
                           variant="contained"
                           size="small"

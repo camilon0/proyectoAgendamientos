@@ -18,7 +18,7 @@ import {
 
 // Definir tipos para las actividades
 interface Activity {
-  activityId: number; // Cambiado a número
+  activityId: string; // Cambiado a string
   name: string;
   reservationDate: string; // Renombrado
   description: string; // Renombrado
@@ -60,10 +60,10 @@ const AppointmentApp = () => {
     e.preventDefault();
 
     try {
-      const newActivity = {
+      const newActivity: Activity = {
         activityId: selectedActivity
-          ? selectedActivity.activityId
-          : generateActivityId(),
+          ? selectedActivity.activityId.toString() // Convertir a string si ya existe
+          : generateActivityId().toString(), // Convertir el nuevo ID a string
         name,
         reservationDate,
         description,
@@ -108,10 +108,10 @@ const AppointmentApp = () => {
   };
 
   // Manejar la eliminación de una actividad
-  const handleDelete = async (activityId: number) => {
+  const handleDelete = async (activityId: string) => {
     if (confirm("¿Estás seguro de que deseas eliminar esta actividad?")) {
       try {
-        await deleteActivity(activityId);
+        await deleteActivity(activityId); // Convertir a string
         alert("Actividad eliminada con éxito");
         const updatedActivities = await fetchActivities();
         setActivities(updatedActivities);

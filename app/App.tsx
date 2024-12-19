@@ -164,8 +164,13 @@ const AppointmentApp = () => {
       try {
         await deleteActivity(activityId);
         alert("Actividad eliminada con éxito");
-        const updatedActivities = await fetchActivities();
-        setActivities(updatedActivities);
+
+        // Actualiza el estado local eliminando la actividad directamente
+        setActivities((prevActivities) =>
+          prevActivities.filter(
+            (activity) => activity.activityId !== activityId
+          )
+        );
       } catch (error) {
         console.error("Error deleting activity:", error);
         alert("Error eliminando la actividad");

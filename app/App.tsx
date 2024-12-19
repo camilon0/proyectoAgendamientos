@@ -328,7 +328,7 @@ const AppointmentApp = () => {
                         <Typography variant="body2">
                           {activity.description}
                         </Typography>
-                        <Typography variant="body2">
+                        <Typography variant="body2" fontWeight="bold">
                           Cupos: {activity.totalCapacity || 0}
                         </Typography>
 

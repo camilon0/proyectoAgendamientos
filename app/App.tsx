@@ -3,9 +3,11 @@ import {
   Button,
   Card,
   CardContent,
+  createTheme,
   Grid,
-  MenuItem,
+  Modal,
   TextField,
+  ThemeProvider,
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -16,29 +18,86 @@ import {
   updateActivity,
 } from "./services/api";
 
-// Definir tipos para las actividades
 interface Activity {
-  activityId: string; // Cambiado a string
+  activityId: string;
   name: string;
-  reservationDate: string; // Renombrado
-  description: string; // Renombrado
-  capacity: number; // Renombrado y definido como número
+  reservationDate: string;
+  description: string;
+  totalCapacity: number;
 }
 
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#F57C00", // Naranja cálido del atardecer
+    },
+    secondary: {
+      main: "#0288D1", // Azul del agua
+    },
+    background: {
+      default: "#FBE9E7", // Fondo beige suave inspirado en el amanecer
+      paper: "#FFF3E0", // Fondo de tarjetas
+    },
+    error: {
+      main: "#D32F2F", // Rojo fuerte
+    },
+  },
+  typography: {
+    fontFamily: "Roboto, Arial, sans-serif",
+    h5: {
+      fontWeight: 700,
+      color: "#0288D1", // Azul del agua
+    },
+    body1: {
+      color: "#37474F", // Gris oscuro
+    },
+    body2: {
+      color: "#546E7A", // Gris medio
+    },
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+          borderRadius: 20,
+        },
+      },
+    },
+  },
+});
+
 const AppointmentApp = () => {
-  const [activities, setActivities] = useState<Activity[]>([]); // Lista de actividades
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
     null
-  ); // Actividad seleccionada
+  );
   const [name, setName] = useState<string>("");
-  const [reservationDate, setReservationDate] = useState<string>(""); // Renombrado
-  const [description, setDescription] = useState<string>(""); // Renombrado
-  const [capacity, setCapacity] = useState<number | "">(""); // Campo numérico
+  const [reservationDate, setReservationDate] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [capacity, setCapacity] = useState<number | "">("");
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
-  // Generar activityId aleatorio
+  const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+
   const generateActivityId = () => Math.floor(100 + Math.random() * 900);
 
-  // Cargar actividades al inicio
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const loggedIn = localStorage.getItem("isLoggedIn") === "true";
+      setIsLoggedIn(loggedIn);
+    }
+  }, []);
   useEffect(() => {
     const loadActivities = async () => {
       try {
@@ -51,31 +110,26 @@ const AppointmentApp = () => {
         );
       }
     };
-
     loadActivities();
   }, []);
 
-  // Manejar el envío del formulario para crear o actualizar una actividad
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     try {
       const newActivity: Activity = {
         activityId: selectedActivity
-          ? selectedActivity.activityId.toString() // Convertir a string si ya existe
-          : generateActivityId().toString(), // Convertir el nuevo ID a string
+          ? selectedActivity.activityId.toString()
+          : generateActivityId().toString(),
         name,
         reservationDate,
         description,
-        capacity: Number(capacity), // Convertir capacidad a número
+        totalCapacity: Number(capacity),
       };
 
       if (selectedActivity) {
-        // Actualizar actividad existente
         await updateActivity(selectedActivity.activityId, newActivity);
         alert("Actividad actualizada con éxito");
       } else {
-        // Crear nueva actividad
         await createActivity(newActivity);
         alert("Actividad creada con éxito");
       }
@@ -89,7 +143,6 @@ const AppointmentApp = () => {
     }
   };
 
-  // Resetear el formulario
   const resetForm = () => {
     setName("");
     setReservationDate("");
@@ -98,20 +151,18 @@ const AppointmentApp = () => {
     setSelectedActivity(null);
   };
 
-  // Manejar la selección de una actividad
   const handleSelectActivity = (activity: Activity) => {
     setSelectedActivity(activity);
     setName(activity.name);
     setReservationDate(activity.reservationDate);
     setDescription(activity.description);
-    setCapacity(activity.capacity);
+    setCapacity(activity.totalCapacity);
   };
 
-  // Manejar la eliminación de una actividad
   const handleDelete = async (activityId: string) => {
     if (confirm("¿Estás seguro de que deseas eliminar esta actividad?")) {
       try {
-        await deleteActivity(activityId); // Convertir a string
+        await deleteActivity(activityId);
         alert("Actividad eliminada con éxito");
         const updatedActivities = await fetchActivities();
         setActivities(updatedActivities);
@@ -122,130 +173,235 @@ const AppointmentApp = () => {
     }
   };
 
+  const handleLogin = () => {
+    if (username === "easyreserves@gmail.com" && password === "12345") {
+      setIsLoggedIn(true);
+      localStorage.setItem("isLoggedIn", "true");
+      setLoginModalOpen(false);
+    } else {
+      alert("Credenciales incorrectas");
+    }
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem("isLoggedIn");
+  };
+
   return (
-    <Grid container spacing={4} padding={4}>
-      {/* Formulario para crear o editar actividad */}
-      <Grid item xs={12} md={6}>
-        <Card>
-          <CardContent>
-            <Typography variant="h5" gutterBottom>
-              {selectedActivity ? "Editar Actividad" : "Crear Actividad"}
+    <ThemeProvider theme={theme}>
+      <Grid container spacing={4} padding={4} alignItems="flex-start">
+        {/* Botón de login/logout */}
+        <Grid item xs={12} textAlign="right">
+          {isLoggedIn ? (
+            <Button variant="outlined" color="secondary" onClick={handleLogout}>
+              Cerrar sesión
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setLoginModalOpen(true)}
+            >
+              Admin Login
+            </Button>
+          )}
+        </Grid>
+
+        {/* Logo grande de la empresa (solo cuando no está logeado) */}
+        {!isLoggedIn && (
+          <Grid item xs={12} md={6} textAlign="center">
+            <img
+              src="/logo.jpg"
+              alt="Logo de la empresa"
+              style={{ maxWidth: "100%", height: "auto", marginBottom: "2rem" }}
+            />
+          </Grid>
+        )}
+
+        {/* Formulario para crear o editar actividad */}
+        {isLoggedIn && (
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" gutterBottom>
+                  {selectedActivity ? "Editar Actividad" : "Crear Actividad"}
+                </Typography>
+                <form onSubmit={handleSubmit}>
+                  <Box marginBottom={2}>
+                    <TextField
+                      fullWidth
+                      label="Nombre"
+                      variant="outlined"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </Box>
+                  <Box marginBottom={2}>
+                    <TextField
+                      fullWidth
+                      label="Fecha de la actividad"
+                      type="date"
+                      variant="outlined"
+                      InputLabelProps={{ shrink: true }}
+                      value={reservationDate}
+                      onChange={(e) => setReservationDate(e.target.value)}
+                    />
+                  </Box>
+                  <Box marginBottom={2}>
+                    <TextField
+                      fullWidth
+                      label="Descripción"
+                      multiline
+                      rows={4}
+                      variant="outlined"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
+                  </Box>
+                  <Box marginBottom={2}>
+                    <TextField
+                      fullWidth
+                      label="Cupos disponibles"
+                      type="number"
+                      variant="outlined"
+                      value={capacity}
+                      onChange={(e) =>
+                        setCapacity(
+                          e.target.value === "" ? "" : Number(e.target.value)
+                        )
+                      }
+                    />
+                  </Box>
+                  <Button variant="contained" color="primary" type="submit">
+                    {selectedActivity
+                      ? "Actualizar Actividad"
+                      : "Crear Actividad"}
+                  </Button>
+                  {selectedActivity && (
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      onClick={resetForm}
+                      sx={{ marginLeft: 2 }}
+                    >
+                      Cancelar
+                    </Button>
+                  )}
+                </form>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {/* Lista de actividades */}
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>
+                Actividades Disponibles
+              </Typography>
+              <Grid container spacing={2}>
+                {activities.map((activity) => (
+                  <Grid item xs={12} sm={6} key={activity.activityId}>
+                    <Card
+                      onClick={() => handleSelectActivity(activity)}
+                      sx={{
+                        cursor: "pointer",
+                        border:
+                          selectedActivity?.activityId === activity.activityId
+                            ? "2px solid #1976d2"
+                            : "1px solid #e0e0e0",
+                        backgroundColor:
+                          selectedActivity?.activityId === activity.activityId
+                            ? "#e3f2fd"
+                            : "white",
+                      }}
+                    >
+                      <CardContent>
+                        <Typography variant="body1" fontWeight="bold">
+                          {activity.name}
+                        </Typography>
+                        <Typography variant="body2">
+                          Fecha: {activity.reservationDate}
+                        </Typography>
+                        <Typography variant="body2">
+                          {activity.description}
+                        </Typography>
+                        <Typography variant="body2">
+                          Cupos: {activity.totalCapacity || 0}
+                        </Typography>
+
+                        {isLoggedIn && (
+                          <Box marginTop={2}>
+                            <Button
+                              onClick={() => handleDelete(activity.activityId)}
+                              color="error"
+                              variant="contained"
+                              size="small"
+                            >
+                              Eliminar
+                            </Button>
+                          </Box>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Modal de inicio de sesión */}
+        <Modal open={loginModalOpen} onClose={() => setLoginModalOpen(false)}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 300,
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: 4,
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="h6" marginBottom={2}>
+              Iniciar sesión
             </Typography>
-            <form onSubmit={handleSubmit}>
-              <Box marginBottom={2}>
-                <TextField
-                  fullWidth
-                  label="Nombre"
-                  variant="outlined"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </Box>
-              <Box marginBottom={2}>
-                <TextField
-                  fullWidth
-                  label="Fecha de Reservación"
-                  type="date"
-                  variant="outlined"
-                  InputLabelProps={{ shrink: true }}
-                  value={reservationDate}
-                  onChange={(e) => setReservationDate(e.target.value)}
-                />
-              </Box>
-              <Box marginBottom={2}>
-                <TextField
-                  fullWidth
-                  label="Descripción"
-                  multiline
-                  rows={4}
-                  variant="outlined"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </Box>
-              <Box marginBottom={2}>
-                <TextField
-                  fullWidth
-                  label="Capacidad"
-                  type="number"
-                  variant="outlined"
-                  value={capacity}
-                  onChange={(e) =>
-                    setCapacity(
-                      e.target.value === "" ? "" : Number(e.target.value)
-                    )
-                  }
-                />
-              </Box>
-              <Button variant="contained" color="primary" type="submit">
-                {selectedActivity ? "Actualizar Actividad" : "Crear Actividad"}
+            <TextField
+              fullWidth
+              label="Usuario"
+              variant="outlined"
+              margin="normal"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <TextField
+              fullWidth
+              label="Contraseña"
+              type="password"
+              variant="outlined"
+              margin="normal"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Box marginTop={2}>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={handleLogin}
+              >
+                Iniciar sesión
               </Button>
-              {selectedActivity && (
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  onClick={resetForm}
-                  sx={{ marginLeft: 2 }}
-                >
-                  Cancelar
-                </Button>
-              )}
-            </form>
-          </CardContent>
-        </Card>
+            </Box>
+          </Box>
+        </Modal>
       </Grid>
-
-      {/* Lista de actividades */}
-      <Grid item xs={12} md={6}>
-        <Card>
-          <CardContent>
-            <Typography variant="h5" gutterBottom>
-              Actividades Disponibles
-            </Typography>
-            <Grid container spacing={2}>
-              {activities.map((activity) => (
-                <Grid item xs={12} sm={6} key={activity.activityId}>
-                  <Card
-                    onClick={() => handleSelectActivity(activity)}
-                    sx={{
-                      cursor: "pointer",
-                      border:
-                        selectedActivity?.activityId === activity.activityId
-                          ? "2px solid #1976d2"
-                          : "1px solid #e0e0e0",
-                      backgroundColor:
-                        selectedActivity?.activityId === activity.activityId
-                          ? "#e3f2fd"
-                          : "white",
-                    }}
-                  >
-                    <CardContent>
-                      <Typography variant="body1" fontWeight="bold">
-                        {activity.name}
-                      </Typography>
-                      <Typography variant="body2">
-                        {activity.reservationDate}
-                      </Typography>
-
-                      <Box marginTop={2}>
-                        <Button
-                          onClick={() => handleDelete(activity.activityId)}
-                          color="error"
-                          variant="contained"
-                          size="small"
-                        >
-                          Eliminar
-                        </Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
+    </ThemeProvider>
   );
 };
 

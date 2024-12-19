@@ -372,7 +372,7 @@ const AppointmentApp = () => {
                         {!isLoggedIn && (
                           <Box marginTop={2}>
                             <Button
-                              onClick={() => handleDelete(activity.activityId)} // Cambia a la función que maneja el agendado
+                              // onClick={() => handleDelete(activity.activityId)} // Cambia a la función que maneja el agendado
                               color="primary"
                               variant="contained"
                               size="small"

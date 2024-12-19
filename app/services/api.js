@@ -7,6 +7,7 @@ const axiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 5000, // 5 segundos
 });
 
 // Interceptor para manejar errores globalmente
@@ -45,4 +46,21 @@ export const updateActivity = async (activityId, updatedActivity) => {
 // Eliminar una actividad
 export const deleteActivity = async (activityId) => {
   await axiosInstance.delete(API_ROUTES.deleteActivity(activityId));
+  console.log(
+    "Deleting activity with URL:",
+    API_ROUTES.deleteActivity(activityId)
+  );
+};
+
+axiosInstance.interceptors.request.use((request) => {
+  console.log("Request Config:", request);
+  return request;
+});
+
+/////// Reservar Actividades ///
+
+// Crear una nueva reserva
+export const reserveActivity = async (activity) => {
+  const response = await axiosInstance.post(API_ROUTES.reservations, activity);
+  return response.data;
 };

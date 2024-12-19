@@ -86,6 +86,7 @@ const AppointmentApp = () => {
   const [capacity, setCapacity] = useState<number | "">("");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
+  ///Login////////////////
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -177,6 +178,24 @@ const AppointmentApp = () => {
       }
     }
   };
+  // const handleReserve = async (activityId: string) => {
+  //   if (confirm("¿Estás seguro de que deseas reservar esta actividad?")) {
+  //     try {
+  //       await createReservation(activityId);
+  //       alert("Actividad reservada con éxito");
+
+  //       // Actualiza el estado local eliminando la actividad directamente
+  //       setActivities((prevActivities) =>
+  //         prevActivities.filter(
+  //           (activity) => activity.activityId !== activityId
+  //         )
+  //       );
+  //     } catch (error) {
+  //       console.error("Error reserving activity:", error);
+  //       alert("Error reservando la actividad");
+  //     }
+  //   }
+  // };
 
   const handleLogin = () => {
     if (username === "easyreserves@gmail.com" && password === "12345") {
@@ -346,6 +365,19 @@ const AppointmentApp = () => {
                               size="small"
                             >
                               Eliminar
+                            </Button>
+                          </Box>
+                        )}
+
+                        {!isLoggedIn && (
+                          <Box marginTop={2}>
+                            <Button
+                              onClick={() => handleDelete(activity.activityId)} // Cambia a la función que maneja el agendado
+                              color="primary"
+                              variant="contained"
+                              size="small"
+                            >
+                              Reservar
                             </Button>
                           </Box>
                         )}

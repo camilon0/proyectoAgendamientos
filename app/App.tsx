@@ -240,12 +240,13 @@ const AppointmentApp = () => {
       });
 
       // Actualizar lista de actividades
-      const updatedActivities = activities.map((activity) =>
-        activity.activityId === selectedActivity.activityId
-          ? { ...activity, availableCapacity: updatedCapacity }
-          : activity
+      setActivities((prevActivities) =>
+        prevActivities.map((activity) =>
+          activity.activityId === selectedActivity.activityId
+            ? { ...activity, availableCapacity: updatedCapacity }
+            : activity
+        )
       );
-      setActivities(updatedActivities);
 
       alert("Reserva realizada con éxito");
       handleCloseModal();

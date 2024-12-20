@@ -24,7 +24,7 @@ interface Activity {
   name: string;
   reservationDate: string;
   description: string;
-  capacity: number;
+  availableCapacity: number;
 }
 
 const theme = createTheme({
@@ -132,7 +132,7 @@ const AppointmentApp = () => {
     setEmail("");
     setReservationCupo(1);
   };
-
+  //crear actividad
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
@@ -143,7 +143,7 @@ const AppointmentApp = () => {
         name,
         reservationDate,
         description,
-        capacity: Number(capacity),
+        availableCapacity: Number(capacity),
       };
 
       if (selectedActivity) {
@@ -176,7 +176,7 @@ const AppointmentApp = () => {
     setName(activity.name);
     setReservationDate(activity.reservationDate);
     setDescription(activity.description);
-    setCapacity(activity.capacity);
+    setCapacity(activity.availableCapacity);
   };
 
   const handleDelete = async (activityId: string) => {
@@ -216,7 +216,7 @@ const AppointmentApp = () => {
   const handleSubmitReservation = async () => {
     if (!selectedActivity) return;
 
-    if (reservationCupo > selectedActivity.capacity) {
+    if (reservationCupo > selectedActivity.availableCapacity) {
       alert("No puedes reservar más cupos de los disponibles.");
       return;
     }
@@ -232,7 +232,8 @@ const AppointmentApp = () => {
       });
 
       // Actualizar capacidad
-      const updatedCapacity = selectedActivity.capacity - reservationCupo;
+      const updatedCapacity =
+        selectedActivity.availableCapacity - reservationCupo;
       await updateActivity(selectedActivity.activityId, {
         ...selectedActivity,
         capacity: updatedCapacity,
@@ -396,7 +397,7 @@ const AppointmentApp = () => {
                           {activity.description}
                         </Typography>
                         <Typography variant="body2" fontWeight="bold">
-                          Cupos: {activity.capacity || 0}
+                          Cupos: {activity.availableCapacity || 0}
                         </Typography>
 
                         {isLoggedIn && (
@@ -416,7 +417,7 @@ const AppointmentApp = () => {
                           <Box marginTop={2}>
                             <Button
                               onClick={() => handleReserveClick(activity)}
-                              disabled={activity.capacity <= 0}
+                              disabled={activity.availableCapacity <= 0}
                               color="primary"
                               variant="contained"
                               size="small"
@@ -475,7 +476,7 @@ const AppointmentApp = () => {
                     1,
                     Math.min(
                       Number(e.target.value),
-                      selectedActivity?.capacity || 1
+                      selectedActivity?.availableCapacity || 1
                     )
                   )
                 )

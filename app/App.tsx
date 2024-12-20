@@ -249,7 +249,7 @@ const AppointmentApp = () => {
     } catch (error) {
       console.error("Error al crear la reserva:", error);
       alert("Reserva realizada con éxito");
-      window.location.reload();
+      //window.location.reload();
     }
   };
 

@@ -148,14 +148,19 @@ const AppointmentApp = () => {
 
       if (selectedActivity) {
         await updateActivity(selectedActivity.activityId, newActivity);
+        setActivities((prev) =>
+          prev.map((activity) =>
+            activity.activityId === selectedActivity.activityId
+              ? newActivity
+              : activity
+          )
+        );
         alert("Actividad actualizada con éxito");
       } else {
         await createActivity(newActivity);
+        setActivities((prev) => [...prev, newActivity]);
         alert("Actividad creada con éxito");
       }
-
-      const updatedActivities = await fetchActivities();
-      setActivities(updatedActivities);
       resetForm();
     } catch (error) {
       console.error("Error submitting activity:", error);
@@ -183,14 +188,11 @@ const AppointmentApp = () => {
     if (confirm("¿Estás seguro de que deseas eliminar esta actividad?")) {
       try {
         await deleteActivity(activityId);
-        alert("Actividad eliminada con éxito");
-
-        // Actualiza el estado local eliminando la actividad directamente
-        setActivities((prevActivities) =>
-          prevActivities.filter(
-            (activity) => activity.activityId !== activityId
-          )
+        setActivities((prev) =>
+          prev.filter((activity) => activity.activityId !== activityId)
         );
+
+        alert("Actividad eliminada con éxito");
       } catch (error) {
         console.error("Error deleting activity:", error);
         alert("Error eliminando la actividad");
@@ -230,20 +232,12 @@ const AppointmentApp = () => {
         reservationDate: selectedActivity.reservationDate,
         status: true,
       });
-
-      // Actualizar capacidad
       const updatedCapacity =
         selectedActivity.availableCapacity - reservationCupo;
-      await updateActivity(selectedActivity.activityId, {
-        ...selectedActivity,
-        capacity: updatedCapacity,
-      });
-
-      // Actualizar lista de actividades
-      setActivities((prevActivities) =>
-        prevActivities.map((activity) =>
+      setActivities((prev) =>
+        prev.map((activity) =>
           activity.activityId === selectedActivity.activityId
-            ? { ...activity, capacity: updatedCapacity }
+            ? { ...activity, availableCapacity: updatedCapacity }
             : activity
         )
       );

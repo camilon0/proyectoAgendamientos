@@ -228,6 +228,7 @@ const AppointmentApp = () => {
         name: email,
         quantity: reservationCupo,
         reservationDate: selectedActivity.reservationDate,
+        status: true,
       });
 
       // Actualizar capacidad

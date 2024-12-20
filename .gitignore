@@ -1,1 +1,17 @@
-node_modules
+# Directorios generados automáticamente
+.next/
+node_modules/
+out/
+
+# Archivos de configuración sensibles
+.env
+
+# Cachés y logs
+.cache/
+*.log
+
+# Archivos de configuración de editores y SO
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp

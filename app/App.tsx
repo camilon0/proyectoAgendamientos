@@ -225,9 +225,10 @@ const AppointmentApp = () => {
       // Crear reserva
       await reserveActivity({
         activityId: selectedActivity.activityId,
-        email: name,
+        name: email,
         quantity: reservationCupo,
         reservationDate: selectedActivity.reservationDate,
+        status: true,
       });
 
       // Actualizar capacidad

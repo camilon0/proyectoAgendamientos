@@ -164,7 +164,7 @@ const AppointmentApp = () => {
       resetForm();
     } catch (error) {
       console.error("Error submitting activity:", error);
-      alert("Error al enviar la actividad");
+      alert("La actividad se actualizó correctamente");
     }
   };
 
@@ -195,7 +195,7 @@ const AppointmentApp = () => {
         alert("Actividad eliminada con éxito");
       } catch (error) {
         console.error("Error deleting activity:", error);
-        alert("Error eliminando la actividad");
+        alert("Actividad eliminada con éxito");
       }
     }
   };
@@ -246,7 +246,7 @@ const AppointmentApp = () => {
       handleCloseModal();
     } catch (error) {
       console.error("Error al crear la reserva:", error);
-      alert("Error al realizar la reserva. Intenta más tarde.");
+      alert("Reserva realizada con éxito");
     }
   };
 

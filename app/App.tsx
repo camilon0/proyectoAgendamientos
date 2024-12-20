@@ -165,6 +165,7 @@ const AppointmentApp = () => {
     } catch (error) {
       console.error("Error submitting activity:", error);
       alert("La actividad se actualizó correctamente");
+      window.location.reload();
     }
   };
 
@@ -196,6 +197,7 @@ const AppointmentApp = () => {
       } catch (error) {
         console.error("Error deleting activity:", error);
         alert("Actividad eliminada con éxito");
+        window.location.reload();
       }
     }
   };
@@ -247,6 +249,7 @@ const AppointmentApp = () => {
     } catch (error) {
       console.error("Error al crear la reserva:", error);
       alert("Reserva realizada con éxito");
+      window.location.reload();
     }
   };
 

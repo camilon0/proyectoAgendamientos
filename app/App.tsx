@@ -225,8 +225,8 @@ const AppointmentApp = () => {
       // Crear reserva
       await reserveActivity({
         activityId: selectedActivity.activityId,
-        email,
-        cupos: reservationCupo,
+        email: name,
+        quantity: reservationCupo,
         reservationDate: selectedActivity.reservationDate,
       });
 

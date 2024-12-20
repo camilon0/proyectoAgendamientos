@@ -15,6 +15,7 @@ import {
   createActivity,
   deleteActivity,
   fetchActivities,
+  reserveActivity,
   updateActivity,
 } from "./services/api";
 
@@ -76,6 +77,11 @@ const theme = createTheme({
 });
 
 const AppointmentApp = () => {
+  //Modal Reservation
+  const [reservationModalOpen, setReservationModalOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [reservationCupo, setReservationCupo] = useState<number>(1);
+
   const [activities, setActivities] = useState<Activity[]>([]);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
     null
@@ -113,6 +119,19 @@ const AppointmentApp = () => {
     };
     loadActivities();
   }, []);
+
+  // Abrir modal para reservar
+  const handleReserveClick = (activity: Activity) => {
+    setSelectedActivity(activity);
+    setReservationModalOpen(true);
+  };
+
+  // Cerrar modal
+  const handleCloseModal = () => {
+    setReservationModalOpen(false);
+    setEmail("");
+    setReservationCupo(1);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -178,24 +197,6 @@ const AppointmentApp = () => {
       }
     }
   };
-  // const handleReserve = async (activityId: string) => {
-  //   if (confirm("¿Estás seguro de que deseas reservar esta actividad?")) {
-  //     try {
-  //       await createReservation(activityId);
-  //       alert("Actividad reservada con éxito");
-
-  //       // Actualiza el estado local eliminando la actividad directamente
-  //       setActivities((prevActivities) =>
-  //         prevActivities.filter(
-  //           (activity) => activity.activityId !== activityId
-  //         )
-  //       );
-  //     } catch (error) {
-  //       console.error("Error reserving activity:", error);
-  //       alert("Error reservando la actividad");
-  //     }
-  //   }
-  // };
 
   const handleLogin = () => {
     if (username === "easyreserves@gmail.com" && password === "12345") {
@@ -210,6 +211,46 @@ const AppointmentApp = () => {
   const handleLogout = () => {
     setIsLoggedIn(false);
     localStorage.removeItem("isLoggedIn");
+  };
+  // Enviar reserva
+  const handleSubmitReservation = async () => {
+    if (!selectedActivity) return;
+
+    if (reservationCupo > selectedActivity.totalCapacity) {
+      alert("No puedes reservar más cupos de los disponibles.");
+      return;
+    }
+
+    try {
+      // Crear reserva
+      await reserveActivity({
+        activityId: selectedActivity.activityId,
+        email,
+        cupos: reservationCupo,
+        reservationDate: selectedActivity.reservationDate,
+      });
+
+      // Actualizar capacidad
+      const updatedCapacity = selectedActivity.totalCapacity - reservationCupo;
+      await updateActivity(selectedActivity.activityId, {
+        ...selectedActivity,
+        totalCapacity: updatedCapacity,
+      });
+
+      // Actualizar lista de actividades
+      const updatedActivities = activities.map((activity) =>
+        activity.activityId === selectedActivity.activityId
+          ? { ...activity, totalCapacity: updatedCapacity }
+          : activity
+      );
+      setActivities(updatedActivities);
+
+      alert("Reserva realizada con éxito");
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error al crear la reserva:", error);
+      alert("Error al realizar la reserva. Intenta más tarde.");
+    }
   };
 
   return (
@@ -372,7 +413,8 @@ const AppointmentApp = () => {
                         {!isLoggedIn && (
                           <Box marginTop={2}>
                             <Button
-                              // onClick={() => handleDelete(activity.activityId)} // Cambia a la función que maneja el agendado
+                              onClick={() => handleReserveClick(activity)}
+                              disabled={activity.totalCapacity <= 0}
                               color="primary"
                               variant="contained"
                               size="small"
@@ -389,6 +431,75 @@ const AppointmentApp = () => {
             </CardContent>
           </Card>
         </Grid>
+        {/* Modal para reservar */}
+        <Modal open={reservationModalOpen} onClose={handleCloseModal}>
+          <Box
+            onClick={(e) => e.stopPropagation()} // Prevenir la propagación
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 400,
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: 4,
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="h6" gutterBottom>
+              Reservar: {selectedActivity?.name}
+            </Typography>
+            <Typography variant="body2">
+              Fecha de la actividad: {selectedActivity?.reservationDate}
+            </Typography>
+            <TextField
+              fullWidth
+              label="Email"
+              variant="outlined"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Cupos"
+              type="number"
+              variant="outlined"
+              value={reservationCupo}
+              onChange={(e) =>
+                setReservationCupo(
+                  Math.max(
+                    1,
+                    Math.min(
+                      Number(e.target.value),
+                      selectedActivity?.totalCapacity || 1
+                    )
+                  )
+                )
+              }
+              margin="normal"
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmitReservation}
+              fullWidth
+              sx={{ marginTop: 2 }}
+            >
+              Confirmar Reserva
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleCloseModal}
+              fullWidth
+              sx={{ marginTop: 1 }}
+            >
+              Cancelar
+            </Button>
+          </Box>
+        </Modal>
 
         {/* Modal de inicio de sesión */}
         <Modal open={loginModalOpen} onClose={() => setLoginModalOpen(false)}>

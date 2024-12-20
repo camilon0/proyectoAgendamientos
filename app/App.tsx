@@ -220,7 +220,10 @@ const AppointmentApp = () => {
   const handleSubmitReservation = async () => {
     if (!selectedActivity) return;
 
-    if (reservationCupo > selectedActivity.availableCapacity) {
+    if (
+      reservationCupo <= 0 ||
+      reservationCupo > (selectedActivity?.availableCapacity || 0)
+    ) {
       alert("No puedes reservar más cupos de los disponibles.");
       return;
     }
@@ -249,7 +252,7 @@ const AppointmentApp = () => {
     } catch (error) {
       console.error("Error al crear la reserva:", error);
       alert("Reserva realizada con éxito");
-      //window.location.reload();
+      window.location.reload();
     }
   };
 

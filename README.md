@@ -182,5 +182,5 @@ Para automatizar el despliegue de este proyecto, es recomendable configurar un p
 - Recuerda actualizar el endpoint de la API Gateway en el archivo `.env` antes de desplegar el proyecto.
 - Si haces cambios en los archivos estáticos, deberás regenerar, subirlos a S3 e invalidar la caché de CloudFront.
 
-
+[aws-EasyReserves.pdf](https://github.com/user-attachments/files/18214261/aws-EasyReserves.pdf)
 
